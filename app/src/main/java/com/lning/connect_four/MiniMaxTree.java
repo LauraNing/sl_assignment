@@ -37,7 +37,7 @@ public class MiniMaxTree {
         {
             Log.d(TAG, "depth = " + depth);
             prev = new Slot();
-            ArrayList<Integer> possibilities = new ArrayList<Integer>();
+            ArrayList<Integer> possibilities = new ArrayList<Integer>();  // all the possible moves
             for(int i = 0; i < MaxCols; i++)
                 if(slots[i][0] == 0)
                     possibilities.add(i);
@@ -54,6 +54,7 @@ public class MiniMaxTree {
 
                 if(i == 0)
                 {
+                    // set initial value to the child value of the first column
                     bestMoves.add(possibilities.get(i));
                     value = child.value;
                 }
@@ -144,32 +145,37 @@ public class MiniMaxTree {
     {
         int player = nodes[i][j];
         int value = 0;
-        value += lineOfFour(i, j, -1, -1, 0, player);
-        value += lineOfFour(i, j, -1, 0, 0, player);
-        value += lineOfFour(i, j, -1, 1, 0, player);
-        value += lineOfFour(i, j, 0, -1, 0, player);
-        value += lineOfFour(i, j, 0, 1, 0, player);
-        value += lineOfFour(i, j, 1, -1, 0, player);
-        value += lineOfFour(i, j, 1, 0, 0, player);
-        value += lineOfFour(i, j, 1, 1, 0, player );
+
+        value += lineOfFour(i, j, 0, 1, player);
+        value += lineOfFour(i, j, 1, -1, player);
+        value += lineOfFour(i, j, 1, 0, player);
+        value += lineOfFour(i, j, 1, 1, player );
 
         Log.d(TAG, "possibleConnections: " + i + " " + j + " " + value);
         return value;
     }
 
-    private int lineOfFour( int x, int y, int i, int j, int count, int player) {
+    private int lineOfFour( int x, int y, int i, int j, int player) {
 
-        if (count >= 4) {
-            return 100;
+        int k, col, row;
+        int count = 0;
+        for (k = -3; k< 4; k++) {
+            col = x + k*i;
+            row = y + k*j;
+            if (col < 0 || col >= MaxCols || row < 0 || row >= MaxRows) {
+                count = 0;
+            }
+            else if (nodes[col][row] == player) {
+                count++;
+            } else {
+                count = 0;
+            }
+
+            if (count >= 4) {
+                return 100;
+            }
         }
-        if (x < 0 || x >= MaxCols || y < 0 || y >= MaxRows) {
-            return 0;
-        }
-        if (nodes[x][y] == player) {
-            return lineOfFour( x + i, y+ j, i, j, count + 1, player);
-        } else {
-            return 0;
-        }
+        return 0;
     }
 
     public int getX()
