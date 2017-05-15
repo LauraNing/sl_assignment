@@ -19,6 +19,8 @@ public class GameActivity extends AppCompatActivity {
     public final static int NUM_ROWS = 6;
     public final static int NUM_COLS = 7;
 
+    private static final int maxDepth = 4;
+
     public final static String ONE_PLAYER = "ONE_PLAYER";
     public final static String TWO_PLAYER = "TWO_PLAYERS";
 
@@ -221,7 +223,7 @@ public class GameActivity extends AppCompatActivity {
                 slots[i][j] = board.getCells(i,j);
             }
         }
-        MiniMaxTree tree = new MiniMaxTree(slots, 0);
+        MiniMaxTree tree = new MiniMaxTree(slots, maxDepth, true);
         return tree.getX();
     }
 }
