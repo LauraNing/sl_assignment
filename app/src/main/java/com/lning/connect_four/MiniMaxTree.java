@@ -11,12 +11,13 @@ import java.util.ArrayList;
 public class MiniMaxTree {
 
     private static final String TAG = "Connect4.Tree";
-    private static final int maxDepth = 4;
+    private static final int MaxAllowedDepth = 6;
     private int[][] nodes;
     public int value;
     private ArrayList<Integer> bestMoves;
     Slot prev = null;
     private int depth;
+    private boolean role;
     private final int MaxRows = GameActivity.NUM_ROWS;
     private final int MaxCols = GameActivity.NUM_COLS;
     public final static int HUMAN_PLAYER = 1;
@@ -27,30 +28,38 @@ public class MiniMaxTree {
         public int iPlayer; //0: empty; 1: Human player; 2: AI player;
     }
 
-    public MiniMaxTree(int[][] slots, int depth) {
+    public MiniMaxTree(int[][] slots, int depth, boolean role) {
         this.nodes = slots;
         this.bestMoves = new ArrayList<Integer>();
         this.depth = depth;
-        this.value = getValue();
+        this.role = role;
+        //this.value = getValue();
+        this.value = 0;
 
-        if(depth < maxDepth)
+        if(depth > 0 && depth <= MaxAllowedDepth)
         {
-            Log.d(TAG, "depth = " + depth);
+            Log.d(TAG, "depth = " + depth + "role: " + (role?"true":"false"));
             prev = new Slot();
             ArrayList<Integer> possibilities = new ArrayList<Integer>();  // all the possible moves
             for(int i = 0; i < MaxCols; i++)
                 if(slots[i][0] == 0)
                     possibilities.add(i);
 
+            int possibleCol;
+            int row;
+
             for(int i = 0; i < possibilities.size(); i++)
             {
-                int row = lastAvailableRow(i);
+                possibleCol = possibilities.get(i);
+                row = lastAvailableRow(possibleCol);
                 if( row != -1 ) {
-                    fillSlot(i,row);
+                    fillSlot(possibleCol,row);
                 }
-                MiniMaxTree child = new MiniMaxTree(nodes, depth+1);
+                MiniMaxTree child = new MiniMaxTree(nodes, depth-1, !role);
                 //revert back the previous insert
-                nodes[prev.i][prev.j] = 0;
+                if( row != -1 ) {
+                    nodes[prev.i][prev.j] = 0;
+                }
 
                 if(i == 0)
                 {
@@ -58,7 +67,7 @@ public class MiniMaxTree {
                     bestMoves.add(possibilities.get(i));
                     value = child.value;
                 }
-                else if(depth % 2 == 0)
+                else if(this.role)
                 {
                     if(value < child.value)
                     {
@@ -69,7 +78,7 @@ public class MiniMaxTree {
                     else if(value == child.value)
                         bestMoves.add(possibilities.get(i));
                 }
-                else if(depth % 2 == 1)
+                else if(!this.role)
                 {
                     if(value > child.value)
                     {
@@ -82,9 +91,12 @@ public class MiniMaxTree {
                 }
             }
         }
-        else
+        else if (depth == 0)
         {
             this.value = getValue();
+        }
+        else {
+            Log.e(TAG, "Depth is too big: depth = " + depth);
         }
     }
 
@@ -98,7 +110,7 @@ public class MiniMaxTree {
     }
 
     public void fillSlot(int col, int row) {
-        if(this.depth % 2 == 0)
+        if(this.role)
             nodes[col][row] = AI_PLAYER;
         else
             nodes[col][row] = HUMAN_PLAYER;
